@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Conteudo {
+  id                     String   @id @default(cuid())
+  clienteId              String?
+  cliente                String
+  plataforma             String
+  objetivo               String
+  tomDeVoz               String
+  tipoConteudo           String
+  tema                   String
+  ctaBriefing            String   @default("")
+
+  headline               String
+  legenda                String
+  cta                    String   @default("")
+  hashtags               String
+  observacaoEstrategica  String
+  sugestaoVisual         String
+  versaoCurta            String
+  conceitoVisual         String   @default("")
+  promptImagem           String   @default("")
+  paleta                 String   @default("")
+  formatoImagem          String   @default("")
+  imagemUrl              String?
+  status                 String   @default("draft")
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  clienteRef             Cliente? @relation(fields: [clienteId], references: [id])
+  publicacoes            Publicacao[]
+  metricas               MetricaConteudo[]
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Cliente {
+  id              String          @id @default(cuid())
+  nome            String
+  setor           String
+  status          String          @default("active")
+  contato         String          @default("")
+  receitaMensal   Int             @default(0)
+  score           Int             @default(80)
+  desde           String          @default("")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  memoriaMarca    MemoriaMarca?
+  conteudos       Conteudo[]
+  eventos         EventoEditorial[]
+  publicacoes     Publicacao[]
+  metricas        MetricaCliente[]
+}
+
+model MemoriaMarca {
+  id                  String   @id @default(cuid())
+  clienteId           String   @unique
+  posicionamento      String   @default("")
+  tomDeVoz            String   @default("")
+  palavrasChave       String   @default("")
+  temasPrioritarios   String   @default("")
+  assuntosSensiveis   String   @default("")
+  restricoes          String   @default("")
+  briefingBase        String   @default("")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  cliente             Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}
+
+model TemplateConteudo {
+  id          String   @id @default(cuid())
+  nome        String
+  nicho       String
+  formato     String
+  objetivo    String
+  promptBase  String
+  campos      String   @default("")
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EventoEditorial {
+  id          String   @id @default(cuid())
+  clienteId   String?
+  titulo      String
+  canal       String
+  tipo        String
+  status      String   @default("planned")
+  data        DateTime
+  briefing    String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+}
+
+model Publicacao {
+  id            String    @id @default(cuid())
+  clienteId     String?
+  conteudoId     String?
+  canal          String
+  status         String    @default("draft")
+  scheduledAt    DateTime?
+  publishedAt    DateTime?
+  externalPostId String?
+  mensagem       String    @default("")
+  mediaUrl       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  cliente        Cliente?  @relation(fields: [clienteId], references: [id])
+  conteudo       Conteudo? @relation(fields: [conteudoId], references: [id])
+}
+
+model MetricaCliente {
+  id             String   @id @default(cuid())
+  clienteId      String
+  periodo        String
+  alcance        Int      @default(0)
+  engajamento    Int      @default(0)
+  sentimento     Int      @default(0)
+  risco          Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  cliente        Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}
+
+model MetricaConteudo {
+  id           String   @id @default(cuid())
+  conteudoId   String
+  canal        String
+  alcance      Int      @default(0)
+  cliques      Int      @default(0)
+  engajamento  Int      @default(0)
+  sentimento   Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  conteudo     Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+}
